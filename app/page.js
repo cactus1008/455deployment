@@ -4,12 +4,21 @@ import { getCustomers } from "../lib/queries";
 export const dynamic = "force-dynamic";
 
 export default async function SelectCustomerPage() {
-  const customers = await getCustomers(500);
+  let customers = [];
+  let loadError = "";
+
+  try {
+    const result = await getCustomers(500);
+    customers = Array.isArray(result) ? result : [];
+  } catch (error) {
+    loadError = error?.message || "Failed to load customers.";
+  }
 
   return (
     <main>
       <h1>Select Customer</h1>
       <p>Choose a customer to open their dashboard (no login required).</p>
+      {loadError ? <p className="error">Customer load error: {loadError}</p> : null}
 
       <table>
         <thead>
