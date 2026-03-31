@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { getActiveProducts, getCustomerById } from "../../../../lib/queries";
 
-export default function NewOrderPage({ params, searchParams }) {
-  const customerId = Number(params.id);
+export default async function NewOrderPage({ params, searchParams }) {
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const customerId = Number(id);
   const customer = getCustomerById(customerId);
   const products = getActiveProducts(200);
-  const success = searchParams.success === "1";
-  const createdOrderId = searchParams.order_id;
-  const error = searchParams.error;
+  const success = resolvedSearchParams.success === "1";
+  const createdOrderId = resolvedSearchParams.order_id;
+  const error = resolvedSearchParams.error;
 
   if (!customer) {
     return (

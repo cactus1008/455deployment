@@ -3,10 +3,11 @@ import { getLateDeliveryPriorityQueue } from "../../lib/queries";
 
 export const dynamic = "force-dynamic";
 
-export default function WarehousePage({ searchParams }) {
+export default async function WarehousePage({ searchParams }) {
+  const resolvedSearchParams = await searchParams;
   const queue = getLateDeliveryPriorityQueue(50);
-  const justScored = searchParams.scored === "1";
-  const scoreCount = searchParams.count;
+  const justScored = resolvedSearchParams.scored === "1";
+  const scoreCount = resolvedSearchParams.count;
 
   return (
     <main>

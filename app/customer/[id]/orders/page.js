@@ -8,8 +8,9 @@ function formatCurrency(value) {
   }).format(value || 0);
 }
 
-export default function CustomerOrderHistoryPage({ params }) {
-  const customerId = Number(params.id);
+export default async function CustomerOrderHistoryPage({ params }) {
+  const { id } = await params;
+  const customerId = Number(id);
   const customer = getCustomerById(customerId);
   const orders = getCustomerOrderHistory(customerId);
 
