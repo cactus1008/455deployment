@@ -5,6 +5,6 @@ export async function GET(request) {
   const limit = Number(searchParams.get("limit") || "10");
   const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 100) : 10;
 
-  const data = getTopProducts(safeLimit);
+  const data = await getTopProducts(safeLimit);
   return Response.json(data);
 }

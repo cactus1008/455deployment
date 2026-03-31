@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getCustomers } from "../lib/queries";
 
-export default function SelectCustomerPage() {
-  const customers = getCustomers(500);
+export const dynamic = "force-dynamic";
+
+export default async function SelectCustomerPage() {
+  const customers = await getCustomers(500);
 
   return (
     <main>

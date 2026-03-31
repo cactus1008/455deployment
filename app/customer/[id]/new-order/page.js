@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { getActiveProducts, getCustomerById } from "../../../../lib/queries";
+export const dynamic = "force-dynamic";
 
 export default async function NewOrderPage({ params, searchParams }) {
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
   const customerId = Number(id);
-  const customer = getCustomerById(customerId);
-  const products = getActiveProducts(200);
+  const customer = await getCustomerById(customerId);
+  const products = await getActiveProducts(200);
   const success = resolvedSearchParams.success === "1";
   const createdOrderId = resolvedSearchParams.order_id;
   const error = resolvedSearchParams.error;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCustomerById, getCustomerDashboard } from "../../../lib/queries";
+export const dynamic = "force-dynamic";
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -11,7 +12,7 @@ function formatCurrency(value) {
 export default async function CustomerDashboardPage({ params }) {
   const { id } = await params;
   const customerId = Number(id);
-  const customer = getCustomerById(customerId);
+  const customer = await getCustomerById(customerId);
 
   if (!customer) {
     return (
@@ -23,7 +24,7 @@ export default async function CustomerDashboardPage({ params }) {
     );
   }
 
-  const dashboard = getCustomerDashboard(customerId);
+  const dashboard = await getCustomerDashboard(customerId);
 
   return (
     <main>

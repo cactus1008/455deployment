@@ -12,7 +12,7 @@ export async function POST(request) {
   const promoCode = String(form.get("promo_code") || "").trim();
 
   try {
-    const created = createOrder({
+    const created = await createOrder({
       customerId,
       productId,
       quantity,

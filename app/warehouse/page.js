@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function WarehousePage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
-  const queue = getLateDeliveryPriorityQueue(50);
+  const queue = await getLateDeliveryPriorityQueue(50);
   const justScored = resolvedSearchParams.scored === "1";
   const scoreCount = resolvedSearchParams.count;
 

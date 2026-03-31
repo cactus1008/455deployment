@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCustomerById, getCustomerOrderHistory } from "../../../../lib/queries";
+export const dynamic = "force-dynamic";
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -11,8 +12,8 @@ function formatCurrency(value) {
 export default async function CustomerOrderHistoryPage({ params }) {
   const { id } = await params;
   const customerId = Number(id);
-  const customer = getCustomerById(customerId);
-  const orders = getCustomerOrderHistory(customerId);
+  const customer = await getCustomerById(customerId);
+  const orders = await getCustomerOrderHistory(customerId);
 
   if (!customer) {
     return (
