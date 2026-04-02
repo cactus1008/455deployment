@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/ml/batch-score?limit=100",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/ml/retrain",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
