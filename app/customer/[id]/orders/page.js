@@ -35,6 +35,7 @@ export default async function CustomerOrderHistoryPage({ params, searchParams })
   const customerId = Number(id);
   const customer = await getCustomerById(customerId);
   const orders = await getCustomerOrderHistory(customerId);
+  const fraudSchemaAvailable = orders.fraudSchemaAvailable !== false;
 
   if (!customer) {
     return (
@@ -54,12 +55,22 @@ export default async function CustomerOrderHistoryPage({ params, searchParams })
         <Link href="/">Select Customer</Link>
       </p>
 
-      <form method="post" action="/api/fraud/run" style={{ marginBottom: "1rem" }}>
-        <input type="hidden" name="customer_id" value={customerId} />
-        <button type="submit">Run fraud scoring (this customer)</button>
-      </form>
+      {!fraudSchemaAvailable && (
+        <p className="error">
+          Fraud columns are not in your database yet. Run the SQL in{" "}
+          <code>supabase/migrations/20260402_orders_fraud_columns.sql</code> in the Supabase SQL
+          editor, then reload this page.
+        </p>
+      )}
 
-      {fraudScored != null && (
+      {fraudSchemaAvailable && (
+        <form method="post" action="/api/fraud/run" style={{ marginBottom: "1rem" }}>
+          <input type="hidden" name="customer_id" value={customerId} />
+          <button type="submit">Run fraud scoring (this customer)</button>
+        </form>
+      )}
+
+      {fraudScored != null && fraudSchemaAvailable && (
         <p className="success">Fraud model scored {fraudScored} order(s).</p>
       )}
 
@@ -87,7 +98,11 @@ export default async function CustomerOrderHistoryPage({ params, searchParams })
               <td>{order.late_delivery ? "Yes" : "No"}</td>
               <td>{fraudPredictionCell(order)}</td>
               <td>
-                <FraudConfirmCell orderId={order.order_id} initial={order.admin_fraud_confirmed} />
+                {fraudSchemaAvailable ? (
+                  <FraudConfirmCell orderId={order.order_id} initial={order.admin_fraud_confirmed} />
+                ) : (
+                  <span className="fraud-muted">—</span>
+                )}
               </td>
             </tr>
           ))}
