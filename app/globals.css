@@ -148,3 +148,12 @@ button:hover {
   border-radius: 8px;
   max-width: fit-content;
 }
+
+.fraud-yes {
+  color: #8b1d1d;
+  font-weight: 600;
+}
+
+.fraud-muted {
+  color: #6b7280;
+}

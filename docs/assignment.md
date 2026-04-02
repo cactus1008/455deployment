@@ -1,0 +1,26 @@
+17.11 Deployment
+Chapter 17: Deploying ML Pipelines — Assignment
+In this assignment, you will complete two major deliverables that demonstrate your ability to build and deploy an end-to-end machine learning pipeline.
+
+Part 1: Deploy a Web App with Vercel
+Follow the steps in Chapter 17 (Sections 17.1–17.9) to build and deploy a complete web application backed by the shop.db operational database. Your deployed app should include:
+
+A “Select Customer” screen (no signup/login required)
+The ability to place a new order and save it to the database
+An order history page for the administrator
+A “Run Scoring” button that triggers the ML inference job and refreshes the priority queue (of orders to verify before fulfilling)
+You may use any of the three recommended stacks (Next.js, FastAPI, or ASP.NET). Use Cursor or another AI coding tool to help you scaffold the application following the prompts in Sections 17.8–17.9. Deploy your finished project to Vercel (or equivalent) and submit the live URL below.
+
+Part 2: CRISP-DM Jupyter Notebook — Predicting is_fraud
+Using the provided shop.db database, build a complete ML pipeline in a Jupyter notebook that predicts the is_fraud column in the orders table. Your notebook should demonstrate the full CRISP-DM process and apply the skills you have learned throughout Chapters 1–16 of the course, including:
+
+Business Understanding — Define the fraud-detection problem and success criteria
+Data Understanding — Load data from the SQLite database, perform feature-level exploration (Ch. 6), and discover relationships (Ch. 8)
+Data Preparation — Wrangle and clean data (Ch. 2–4), build automated preparation pipelines (Ch. 7), and engineer features
+Modeling — Train classification models (Ch. 13) using ensemble methods (Ch. 14) or other algorithms
+Evaluation — Evaluate, select, and tune models (Ch. 15); perform feature selection (Ch. 16)
+Deployment — Serialize the trained model and demonstrate how it integrates into the pipeline (Ch. 17)
+Upload your completed .ipynb notebook file below.
+
+Part 3: AI Chat Logs (Optional)
+Copy AI chat conversations (e.g., ChatGPT, Claude, Cursor chats) that show how you used AI tools to complete this project. You do not need to fill all 8 slots—submit only as many as you have. Even 1–2 links are fine.
