@@ -1,11 +1,9 @@
-import { predict, batchPredict } from "../../../lib/ml-logic";
 import { NextResponse } from "next/server";
+import { runMlPredictAsApi } from "../../../../lib/pipelinePredict";
 
 /**
- * ML Prediction API Endpoint (Pure JavaScript version)
- * Use this if Python is not available on Vercel.
- * 
- * Endpoint: POST /api/ml/predict-js
+ * Fraud prediction: uses python/ml_logic when joblib artifacts are present,
+ * otherwise lib/ml-logic.js heuristics (fine for serverless without Python).
  */
 
 export async function POST(request) {
@@ -20,8 +18,7 @@ export async function POST(request) {
       );
     }
 
-    // Run prediction
-    const result = predict(body);
+    const result = runMlPredictAsApi(body);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -53,7 +50,7 @@ export async function PUT(request) {
       );
     }
 
-    const results = batchPredict(body.data);
+    const results = body.data.map((item) => runMlPredictAsApi(item));
 
     return NextResponse.json({
       success: true,

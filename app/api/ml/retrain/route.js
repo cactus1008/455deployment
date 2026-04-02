@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
 import { NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '../../../lib/supabase';
+import { getSupabaseServerClient } from '../../../../lib/supabase';
 
 const execAsync = promisify(exec);
 
