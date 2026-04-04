@@ -1,114 +1,77 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
-import fs from 'fs';
-import { NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '../../../../lib/supabase';
-
-const execAsync = promisify(exec);
+import { exec } from "child_process";
+import path from "path";
+import fs from "fs";
+import { NextResponse } from "next/server";
+import { getSupabaseServerClient } from "../../../../lib/supabase";
 
 /**
  * POST /api/ml/retrain
- * Starts model retraining from labeled fraud_logs data
+ * Retrains the XGBoost model from the orders table.
+ * Called nightly by vercel.json cron at 2 AM.
  */
-export async function POST(request) {
+export async function POST() {
+  const retrainingFlag = path.join(process.cwd(), ".retraining-in-progress");
+
+  if (fs.existsSync(retrainingFlag)) {
+    return NextResponse.json(
+      { error: "Retraining already in progress" },
+      { status: 429 }
+    );
+  }
+
   try {
     const supabase = getSupabaseServerClient();
-    const retrainingFlag = path.join(process.cwd(), '.retraining-in-progress');
-
-    // Check if retraining already in progress
-    if (fs.existsSync(retrainingFlag)) {
-      return NextResponse.json(
-        { error: 'Retraining already in progress' },
-        { status: 429 }
-      );
-    }
-
-    // Create progress flag
     fs.writeFileSync(retrainingFlag, new Date().toISOString());
 
-    // Log retraining start
-    const { data: retrainingLog } = await supabase
-      .from('retraining_logs')
-      .insert({
-        status: 'in_progress',
-        started_at: new Date().toISOString(),
-      })
-      .select();
-
-    const retrainingId = retrainingLog?.[0]?.retraining_id;
-
-    // Start retraining in background
-    const notebookPath = path.join(
-      process.cwd(),
-      'notebooks',
-      'train_fraud_model.ipynb'
-    );
-
-    if (!fs.existsSync(notebookPath)) {
-      fs.unlinkSync(retrainingFlag);
-      return NextResponse.json(
-        { error: 'Training notebook not found' },
-        { status: 404 }
-      );
+    let retrainingId = null;
+    try {
+      const { data } = await supabase
+        .from("retraining_logs")
+        .insert({ status: "in_progress", started_at: new Date().toISOString() })
+        .select();
+      retrainingId = data?.[0]?.retraining_id;
+    } catch {
+      /* table may not exist -- not critical */
     }
 
-    // Run notebook (requires nbconvert or papermill)
-    const command = `cd ${process.cwd()} && python -m nbconvert --to notebook --execute ${notebookPath} --output ${notebookPath}`;
+    const scriptPath = path.join(process.cwd(), "python", "train_from_orders.py");
+    if (!fs.existsSync(scriptPath)) {
+      fs.unlinkSync(retrainingFlag);
+      return NextResponse.json({ error: "Training script not found" }, { status: 404 });
+    }
 
-    // Run in background without waiting
-    exec(command, async (error, stdout, stderr) => {
+    const py = process.env.PYTHON_PATH || (process.platform === "win32" ? "python" : "python3");
+    const command = `"${py}" "${scriptPath}"`;
+
+    exec(command, { cwd: process.cwd(), timeout: 300_000 }, async (error, stdout, stderr) => {
       try {
-        if (error) {
-          // Update log with error
-          await supabase
-            .from('retraining_logs')
-            .update({
-              status: 'failed',
-              completed_at: new Date().toISOString(),
-              error_message: error.message || 'Unknown error',
-              logs: stderr || stdout,
-            })
-            .eq('retraining_id', retrainingId);
+        const status = error ? "failed" : "success";
+        const update = {
+          status,
+          completed_at: new Date().toISOString(),
+          ...(error ? { error_message: error.message, logs: stderr || stdout } : { logs: stdout }),
+        };
 
-          console.error('Retraining error:', error);
-        } else {
-          // Update log with success
-          await supabase
-            .from('retraining_logs')
-            .update({
-              status: 'success',
-              completed_at: new Date().toISOString(),
-              logs: stdout,
-            })
-            .eq('retraining_id', retrainingId);
-
-          console.log('Retraining completed successfully');
+        if (retrainingId) {
+          await supabase.from("retraining_logs").update(update).eq("retraining_id", retrainingId);
         }
+        console.log(`Retraining ${status}`, error ? error.message : "");
       } catch (err) {
-        console.error('Error updating retraining log:', err);
+        console.error("Error updating retraining log:", err);
       } finally {
-        // Remove flag
-        if (fs.existsSync(retrainingFlag)) {
-          fs.unlinkSync(retrainingFlag);
-        }
+        if (fs.existsSync(retrainingFlag)) fs.unlinkSync(retrainingFlag);
       }
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Retraining started in background',
+      message: "Retraining started in background",
       retraining_id: retrainingId,
-      status: 'in_progress',
+      status: "in_progress",
     });
   } catch (error) {
-    console.error('Retrain endpoint error:', error);
-    return NextResponse.json(
-      {
-        error: error.message || 'Retraining setup failed',
-      },
-      { status: 500 }
-    );
+    if (fs.existsSync(retrainingFlag)) fs.unlinkSync(retrainingFlag);
+    return NextResponse.json({ error: error.message || "Retraining setup failed" }, { status: 500 });
   }
 }
 
